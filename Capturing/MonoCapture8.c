@@ -69,9 +69,12 @@ int main(int argc, char* argv[])
 		exit(0);
 	}
 
+	model = arr[0].model;
+	printf("Model found  %s\n",model->name);
+	printf("Capabilities 0x%08x\n",model->flag);
 	
 	if (argc != 3) {
-		printf("Usage: %s expo_time_ms gain%%\n",argv[0]);
+		printf("Usage: %s expo_time_ms gain_x_100\n",argv[0]);
 		exit(0);
 	}
 	
@@ -85,8 +88,8 @@ int main(int argc, char* argv[])
 		exit(0);
 	}
 	
-	printf("Still resolution: %d\n",Toupcam_get_StillResolutionNumber(h));
-	printf("Max bit depth: %d\n",Toupcam_get_MaxBitDepth(h));
+	//printf("Still resolution: %d\n",Toupcam_get_StillResolutionNumber(h));
+	//printf("Max bit depth: %d\n",Toupcam_get_MaxBitDepth(h));
 	BARRIER(Toupcam_get_ExpoAGainRange(h, &gain_min, &gain_max, &definition));
 	printf("Gain range: from %d to %d. Definition is %d\n",gain_min,gain_max,definition);
 	if (gain > gain_max) {
@@ -97,6 +100,9 @@ int main(int argc, char* argv[])
 		gain = gain_min;
 		printf("Set gain to %d\n",gain);
 	}
+	
+	printf("Exposure 	is %d uS\n",expo);
+	printf("Gain (x100) is %d \n",gain);
 	
 	BARRIER(Toupcam_put_Option(h,TOUPCAM_OPTION_BITDEPTH,0)); // 8 bits
 	//BARRIER(Toupcam_put_Option(h,TOUPCAM_OPTION_RGB48,1));
