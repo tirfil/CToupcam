@@ -1,0 +1,6 @@
+
+Need to download toupcam sdk files: 
+http://www.touptek.com/upload/download/toupcamsdk.zip and install .so in /usr/local/lib
+
+Add /usr/local/lib to shared library path for execution:
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
