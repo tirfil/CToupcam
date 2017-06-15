@@ -153,6 +153,7 @@ int main(int argc, char* argv[]) {
 	
 	Px* pxa;
 	Px* pxb; 
+	Px* pxl;
 	
 	int* a2;
 	int* b2;
@@ -179,6 +180,7 @@ int main(int argc, char* argv[]) {
 	
 	int go;
 	
+
 	x=0;
 	y=0;
 	x0=0;
@@ -186,6 +188,8 @@ int main(int argc, char* argv[]) {
 	
 	xmini = 0;
 	ymini = 0;
+	
+	unsigned int* score;
 	
 	
 	if (argc != 5){
@@ -361,7 +365,9 @@ int main(int argc, char* argv[]) {
 				pointb[2*j+1]=lb/nb;
 			}
 			
-			for(j=0;j<1;j++){
+			pxl = malloc(sizeof(Px)*size);
+			
+			for(j=0;j<size;j++){
 				x0 = pointa[2*j];
 				x1 = pointa[2*j+1];
 				y0 = pointb[2*j];
@@ -372,8 +378,34 @@ int main(int argc, char* argv[]) {
 				printf("b (%d,%d) - (%d,%d)\n",pxb[y0].x,pxb[y0].y,pxb[y1].x,pxb[y1].y);
 				y = (pxa[x0].y+pxa[x1].y) - (pxb[y0].y+pxb[y1].y);
 				y = y/2;
+				pxl[j].x = x;
+				pxl[j].y = y;
 				printf("dx=%d , dy=%d\n",x,y);
 			}
+			
+			score = malloc(sizeof(unsigned int)*size);
+			
+			for (i=0;i<size;i++){
+				score[i] = 0;
+				for(j=i;j<size;j++)
+					if ((pxl[i].x == pxl[j].x) && (pxl[i].y == pxl[j].y))
+						score[i]++;
+			}
+			
+			maxi = 0;
+			for (i=0;i<size;i++)
+				if (score[i] > maxi){
+					maxi = score[i];
+					index = i;
+				}
+				
+			printf("max score= %d\n",maxi);
+			
+			xmini = -pxl[index].x;
+			ymini = -pxl[index].y;
+			
+			free(pxl);
+			free(score);
 			
 			xmini = -x;
 			ymini = -y;
