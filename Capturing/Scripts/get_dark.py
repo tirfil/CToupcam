@@ -3,6 +3,8 @@ import sys
 import os
 import shutil
 
+path=r"~/bin/"
+
 directory = "dark"
 
 duration = sys.argv[1] # ms
