@@ -113,6 +113,22 @@ int get_max(int*a,int na,int* upper){
 	return ii;	
 }
 
+int get_max_uchar(unsigned char*a,int na,int* upper){
+	int i,ii;
+	unsigned char n,maxi;
+	maxi = 0;
+	ii = -1;
+	for(i=0;i<na;i++){
+		n = a[i];
+		if ((maxi < n) && (n < *upper)){
+			maxi = n;
+			ii = i;
+		}
+	}
+	*upper=maxi;
+	return ii;	
+}
+
 int get_index(int*a,int na,int value){
 	int i;
 	int n;
@@ -180,6 +196,13 @@ int main(int argc, char* argv[]) {
 	
 	int go;
 	
+	int nsample;
+	
+	int ii;
+	
+	
+	nsample = 20;
+	
 
 	x=0;
 	y=0;
@@ -224,22 +247,20 @@ int main(int argc, char* argv[]) {
 				for(x=1;x<width-1;x++){
 					i = y*width+x;
 					us = a[i];
-					if ( us > thresholda ){
-						aa[i] = 1;
-						for(y0=y-1;y0<=y+1;y0++){
-							for(x0=x-1;x0<=x+1;x0++){
-								if (a[y0*width+x0] > us)
-								{
-									aa[i] = 0;
-									break;
-								}
+					aa[i] = us;
+					for(y0=y-1;y0<=y+1;y0++){
+						for(x0=x-1;x0<=x+1;x0++){
+							if (a[y0*width+x0] > us)
+							{
+								aa[i] = 0;
+								break;
 							}
 						}
-						if (aa[i]==1){
-							//printf("(%d,%d)\n",x,y);
-							n++;
-						}
-					}			
+					}
+					if (aa[i]!=0){
+						//printf("(%d,%d)\n",x,y);
+						n++;
+					}	
 				}
 								
 			printf("detect %d/%ld\n",n,nelements);
@@ -247,15 +268,20 @@ int main(int argc, char* argv[]) {
 			na = n;
 			pxa = malloc(sizeof(Px)*na);
 			
-			i=0;
-			for(y=0;y<height;y++)
-				for(x=0;x<width;x++)
-					if(aa[x+y*width] != 0){
-						pxa[i].x=x;
-						pxa[i].y=y;
-						printf("star %d (%d,%d)\n",i,x,y);
-						i++;
-					}
+			// filter 
+			upper = INT_MAX;
+			j = 0;
+			for (i=0;i<nsample;i++){
+				printf(". %d\n",upper);
+				ii = get_max_uchar(aa,nelements,&upper);
+				printf(".. %d\n",upper);
+				if (upper == 0) break;
+				pxa[j].x = ii % width;
+				pxa[j].y = ii / width;
+				j++;
+			}
+				
+			na = j;
 						
 			a2 = malloc(sizeof(int)*na*na);
 			for(i=0;i<na;i++)
@@ -289,37 +315,39 @@ int main(int argc, char* argv[]) {
 				for(x=1;x<width-1;x++){
 					i = y*width+x;
 					us = b[i];
-					if ( us > thresholdb ){
-						bb[i] = 1;
-						for(y0=y-1;y0<=y+1;y0++){
-							for(x0=x-1;x0<=x+1;x0++){
-								if (b[y0*width+x0] > us)
-								{
-									bb[i] = 0;
-									break;
-								}
+					bb[i] = us;
+					for(y0=y-1;y0<=y+1;y0++){
+						for(x0=x-1;x0<=x+1;x0++){
+							if (b[y0*width+x0] > us)
+							{
+								bb[i] = 0;
+								break;
 							}
 						}
-						if (bb[i]==1){
-							//printf("(%d,%d)\n",x,y);
-							n++;
-						}
-					}			
+					}
+					if (bb[i]!=0){
+						//printf("(%d,%d)\n",x,y);
+						n++;
+					}		
 				}
 			printf("detect %d/%ld\n",n,nelements);	
 			
 			nb = n;
 			pxb = malloc(sizeof(Px)*nb);
 			
-			i=0;
-			for(y=0;y<height;y++)
-				for(x=0;x<width;x++)
-					if(bb[x+y*width] != 0){
-						pxb[i].x=x;
-						pxb[i].y=y;
-						printf("star %d (%d,%d)\n",i,x,y);
-						i++;
-					}	
+			// filter 
+			upper = INT_MAX;
+			j = 0;
+			for (i=0;i<nsample;i++){
+				ii = get_max_uchar(bb,nelements,&upper);
+				printf(".. %d\n",upper);
+				if (upper == 0) break;
+				pxb[j].x = ii % width;
+				pxb[j].y = ii / width;
+				j++;
+			}
+			
+			nb = j;
 					
 			b2 = malloc(sizeof(int)*nb*nb);
 			for(i=0;i<nb;i++)
@@ -394,13 +422,16 @@ int main(int argc, char* argv[]) {
 				}
 				
 				maxi = 0;
-				for (i=0;i<size;i++)
+				index = 0;
+				for (i=0;i<size;i++){
+					printf("%d:%d (%d,%d)\n",i,score[i],pxl[i].x,pxl[i].y);
 					if (score[i] > maxi){
 						maxi = score[i];
 						index = i;
 					}
+				}
 					
-				printf("max score= %d\n",maxi);
+				printf("max score= %d index=%d\n",maxi,index);
 				
 				x = (pxl[index].x);
 				y = (pxl[index].y);
