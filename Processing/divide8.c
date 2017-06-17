@@ -48,7 +48,7 @@ int read_fits(char* path, unsigned char** image)
 			
 			*image = malloc(sizeof(unsigned char)*nelements);
 			
-			if (bitpix == 16){
+			if (bitpix == 8){
 				fits_read_img(fptr,TBYTE,1,nelements,NULL,*image, &anynul, &status);
 				fits_close_file(fptr, &status);
 				return status;
@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
 			delta_flat = maxi_flat - mini_flat;
 			delta_light = maxi_light - mini_light;
 			// algo 4
-			factor = 65535L*(unsigned long)mini_flat/(unsigned long)maxi_light;
+			factor = (long)UCHAR_MAX*(unsigned long)mini_flat/(unsigned long)maxi_light;
 			lint_flat = (unsigned long)mini_light*factor/(unsigned long)maxi_flat;
 			printf("factor=%ld min=%ld\n",factor,lint_flat);
 			for(i=0;i<nelements;i++){

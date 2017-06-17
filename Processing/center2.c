@@ -356,56 +356,61 @@ int main(int argc, char* argv[]) {
 			size = i;
 			printf("size=%d\n",size);
 			
-			for(j=0;j<size;j++){
-				la = lista[j];
-				pointa[2*j  ]=la%na;
-				pointa[2*j+1]=la/na;
-				lb = listb[j];
-				pointb[2*j  ]=lb%nb;
-				pointb[2*j+1]=lb/nb;
-			}
-			
-			pxl = malloc(sizeof(Px)*size);
-			
-			for(j=0;j<size;j++){
-				x0 = pointa[2*j];
-				x1 = pointa[2*j+1];
-				y0 = pointb[2*j];
-				y1 = pointb[2*j+1];
-				printf("a (%d,%d) - (%d,%d)\n",pxa[x0].x,pxa[x0].y,pxa[x1].x,pxa[x1].y);
-				x = (pxa[x0].x+pxa[x1].x) - (pxb[y0].x+pxb[y1].x);
-				x = x/2;
-				printf("b (%d,%d) - (%d,%d)\n",pxb[y0].x,pxb[y0].y,pxb[y1].x,pxb[y1].y);
-				y = (pxa[x0].y+pxa[x1].y) - (pxb[y0].y+pxb[y1].y);
-				y = y/2;
-				pxl[j].x = x;
-				pxl[j].y = y;
-				printf("dx=%d , dy=%d\n",x,y);
-			}
-			
-			score = malloc(sizeof(unsigned int)*size);
-			
-			for (i=0;i<size;i++){
-				score[i] = 0;
-				for(j=i;j<size;j++)
-					if ((pxl[i].x == pxl[j].x) && (pxl[i].y == pxl[j].y))
-						score[i]++;
-			}
-			
-			maxi = 0;
-			for (i=0;i<size;i++)
-				if (score[i] > maxi){
-					maxi = score[i];
-					index = i;
+			if (size != 0){
+				for(j=0;j<size;j++){
+					la = lista[j];
+					pointa[2*j  ]=la%na;
+					pointa[2*j+1]=la/na;
+					lb = listb[j];
+					pointb[2*j  ]=lb%nb;
+					pointb[2*j+1]=lb/nb;
 				}
 				
-			printf("max score= %d\n",maxi);
-			
-			xmini = -pxl[index].x;
-			ymini = -pxl[index].y;
-			
-			free(pxl);
-			free(score);
+				pxl = malloc(sizeof(Px)*size);
+				
+				for(j=0;j<size;j++){
+					x0 = pointa[2*j];
+					x1 = pointa[2*j+1];
+					y0 = pointb[2*j];
+					y1 = pointb[2*j+1];
+					printf("a (%d,%d) - (%d,%d)\n",pxa[x0].x,pxa[x0].y,pxa[x1].x,pxa[x1].y);
+					x = (pxa[x0].x+pxa[x1].x) - (pxb[y0].x+pxb[y1].x);
+					x = x/2;
+					printf("b (%d,%d) - (%d,%d)\n",pxb[y0].x,pxb[y0].y,pxb[y1].x,pxb[y1].y);
+					y = (pxa[x0].y+pxa[x1].y) - (pxb[y0].y+pxb[y1].y);
+					y = y/2;
+					pxl[j].x = x;
+					pxl[j].y = y;
+					printf("dx=%d , dy=%d\n",x,y);
+				}
+				
+				score = malloc(sizeof(unsigned int)*size);
+				
+				for (i=0;i<size;i++){
+					score[i] = 0;
+					for(j=i;j<size;j++)
+						if ((pxl[i].x == pxl[j].x) && (pxl[i].y == pxl[j].y))
+							score[i]++;
+				}
+				
+				maxi = 0;
+				for (i=0;i<size;i++)
+					if (score[i] > maxi){
+						maxi = score[i];
+						index = i;
+					}
+					
+				printf("max score= %d\n",maxi);
+				
+				xmini = -pxl[index].x;
+				ymini = -pxl[index].y;
+				
+				free(pxl);
+				free(score);
+			} else {
+				x=0;
+				y=0;
+			}
 			
 			xmini = -x;
 			ymini = -y;
