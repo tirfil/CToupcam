@@ -225,6 +225,7 @@ int main(int argc, char* argv[]) {
 	if (read_fits(argv[1],&a) == 0){
 		if (read_fits(argv[2],&b) == 0){
 			nelements = height * width;
+			
 			// detect maxi/mini
 			mini = UCHAR_MAX;
 			maxi = 0;
@@ -361,17 +362,17 @@ int main(int argc, char* argv[]) {
 				}	
 				
 				
-			//
+			// segment correspondance
 			upper = INT_MAX;
 			go = 1;
 			i = 0;
 			while ( go ) {
 				la = get_max(a2,na*na,&upper);
 				if (la>=0) {
-					printf("upper=%d a=%d\n",upper,la);
+					//printf("upper=%d a=%d\n",upper,la);
 					lb = get_index(b2,nb*nb,upper);
 					if (lb>=0) {
-						printf("found b=%d\n",lb);
+						//printf("found b=%d\n",lb);
 						lista[i] = la;
 						listb[i++] = lb;
 						if (i==10) go=0;
@@ -382,66 +383,80 @@ int main(int argc, char* argv[]) {
 			}
 			
 			size = i;
-			printf("size=%d\n",size);
+			printf("distance match=%d\n",size);
 			
-			if (size != 0){
-				for(j=0;j<size;j++){
-					la = lista[j];
-					pointa[2*j  ]=la%na;
-					pointa[2*j+1]=la/na;
-					lb = listb[j];
-					pointb[2*j  ]=lb%nb;
-					pointb[2*j+1]=lb/nb;
-				}
-				
-				pxl = malloc(sizeof(Px)*size);
-				
-				for(j=0;j<size;j++){
-					x0 = pointa[2*j];
-					x1 = pointa[2*j+1];
-					y0 = pointb[2*j];
-					y1 = pointb[2*j+1];
-					printf("a (%d,%d) - (%d,%d)\n",pxa[x0].x,pxa[x0].y,pxa[x1].x,pxa[x1].y);
-					x = (pxa[x0].x+pxa[x1].x) - (pxb[y0].x+pxb[y1].x);
-					x = x/2;
-					printf("b (%d,%d) - (%d,%d)\n",pxb[y0].x,pxb[y0].y,pxb[y1].x,pxb[y1].y);
-					y = (pxa[x0].y+pxa[x1].y) - (pxb[y0].y+pxb[y1].y);
-					y = y/2;
-					pxl[j].x = x;
-					pxl[j].y = y;
-					printf("dx=%d , dy=%d\n",x,y);
-				}
-				
-				score = malloc(sizeof(unsigned int)*size);
-				
-				for (i=0;i<size;i++){
-					score[i] = 0;
-					for(j=i;j<size;j++)
-						if ((pxl[i].x == pxl[j].x) && (pxl[i].y == pxl[j].y))
-							score[i]++;
-				}
-				
-				maxi = 0;
-				index = 0;
-				for (i=0;i<size;i++){
-					printf("%d:%d (%d,%d)\n",i,score[i],pxl[i].x,pxl[i].y);
-					if (score[i] > maxi){
-						maxi = score[i];
-						index = i;
-					}
-				}
-					
-				printf("max score= %d index=%d\n",maxi,index);
-				
-				x = (pxl[index].x);
-				y = (pxl[index].y);
-				
-				free(pxl);
-				free(score);
-			} else {
-				x=0;
-				y=0;
+			if (size == 0) {
+				printf ("No matching found!\n");
+				exit(0);
 			}
+			
+			for(j=0;j<size;j++){
+				la = lista[j];
+				pointa[2*j  ]=la%na;
+				pointa[2*j+1]=la/na;
+				lb = listb[j];
+				pointb[2*j  ]=lb%nb;
+				pointb[2*j+1]=lb/nb;
+			}
+			
+			pxl = malloc(sizeof(Px)*size);
+			
+			// middle of segments
+			
+			for(j=0;j<size;j++){
+				x0 = pointa[2*j];
+				x1 = pointa[2*j+1];
+				y0 = pointb[2*j];
+				y1 = pointb[2*j+1];
+				printf("a (%d,%d) - (%d,%d)\n",pxa[x0].x,pxa[x0].y,pxa[x1].x,pxa[x1].y);
+				x = (pxa[x0].x+pxa[x1].x) - (pxb[y0].x+pxb[y1].x);
+				x = x/2;
+				printf("b (%d,%d) - (%d,%d)\n",pxb[y0].x,pxb[y0].y,pxb[y1].x,pxb[y1].y);
+				y = (pxa[x0].y+pxa[x1].y) - (pxb[y0].y+pxb[y1].y);
+				y = y/2;
+				pxl[j].x = x;
+				pxl[j].y = y;
+				printf("dx=%d , dy=%d\n",x,y);
+			}
+			
+			score = malloc(sizeof(unsigned int)*size);
+			
+			for (i=0;i<size;i++){
+				score[i] = 0;
+				for(j=i;j<size;j++)
+					if ((pxl[i].x == pxl[j].x) && (pxl[i].y == pxl[j].y))
+						score[i]++;
+			}
+			
+			maxi = 0;
+			index = 0;
+			for (i=0;i<size;i++){
+				printf("%d:%d (%d,%d)\n",i,score[i],pxl[i].x,pxl[i].y);
+				if (score[i] > maxi){
+					maxi = score[i];
+					index = i;
+				}
+			}
+				
+			printf("max score= %d index=%d\n",maxi,index);
+			
+			if (size == 1) {
+				index = 0;
+			} else {
+				if (maxi < 2) {
+					printf("No enough matching\n");
+					free(pxl);
+					free(score);
+					exit(0);
+				}
+			}
+			
+			x = (pxl[index].x);
+			y = (pxl[index].y);
+
+			
+			free(pxl);
+			free(score);
 			
 			xmini = -x;
 			ymini = -y;
