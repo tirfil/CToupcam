@@ -4,4 +4,5 @@ gcc median8.c -lcfitsio -o median8
 gcc substract8.c -lcfitsio -o substract8
 gcc divide8.c -lcfitsio -o divide8
 gcc center2.c -lm -lcfitsio -o center2 
+gcc center3.c -lm -lcfitsio -o center3 
 

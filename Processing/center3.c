@@ -273,9 +273,9 @@ int main(int argc, char* argv[]) {
 			upper = INT_MAX;
 			j = 0;
 			for (i=0;i<nsample;i++){
-				printf(". %d\n",upper);
+				//printf(". %d\n",upper);
 				ii = get_max_uchar(aa,nelements,&upper);
-				printf(".. %d\n",upper);
+				//printf(".. %d\n",upper);
 				if (upper == 0) break;
 				pxa[j].x = ii % width;
 				pxa[j].y = ii / width;
@@ -291,7 +291,7 @@ int main(int argc, char* argv[]) {
 					dy=pxa[i].y-pxa[j].y;
 					distance=dx*dx+dy*dy;
 					distance = (int)sqrt((double)distance);
-					printf("%d:%d -> %d\n",i,j,distance);
+					//printf("%d:%d -> %d\n",i,j,distance);
 					a2[j*na+i]=distance;	
 				}
 			
@@ -341,7 +341,7 @@ int main(int argc, char* argv[]) {
 			j = 0;
 			for (i=0;i<nsample;i++){
 				ii = get_max_uchar(bb,nelements,&upper);
-				printf(".. %d\n",upper);
+				//printf(".. %d\n",upper);
 				if (upper == 0) break;
 				pxb[j].x = ii % width;
 				pxb[j].y = ii / width;
@@ -357,7 +357,7 @@ int main(int argc, char* argv[]) {
 					dy=pxb[i].y-pxb[j].y;
 					distance=dx*dx+dy*dy;
 					distance = (int)sqrt((double)distance);
-					printf("%d:%d -> %d\n",i,j,distance);
+					//printf("%d:%d -> %d\n",i,j,distance);
 					b2[j*nb+i]=distance;	
 				}	
 				
@@ -408,15 +408,15 @@ int main(int argc, char* argv[]) {
 				x1 = pointa[2*j+1];
 				y0 = pointb[2*j];
 				y1 = pointb[2*j+1];
-				printf("a (%d,%d) - (%d,%d)\n",pxa[x0].x,pxa[x0].y,pxa[x1].x,pxa[x1].y);
+				//printf("a (%d,%d) - (%d,%d)\n",pxa[x0].x,pxa[x0].y,pxa[x1].x,pxa[x1].y);
 				x = (pxa[x0].x+pxa[x1].x) - (pxb[y0].x+pxb[y1].x);
 				x = x/2;
-				printf("b (%d,%d) - (%d,%d)\n",pxb[y0].x,pxb[y0].y,pxb[y1].x,pxb[y1].y);
+				//printf("b (%d,%d) - (%d,%d)\n",pxb[y0].x,pxb[y0].y,pxb[y1].x,pxb[y1].y);
 				y = (pxa[x0].y+pxa[x1].y) - (pxb[y0].y+pxb[y1].y);
 				y = y/2;
 				pxl[j].x = x;
 				pxl[j].y = y;
-				printf("dx=%d , dy=%d\n",x,y);
+				//printf("dx=%d , dy=%d\n",x,y);
 			}
 			
 			score = malloc(sizeof(unsigned int)*size);
@@ -431,7 +431,7 @@ int main(int argc, char* argv[]) {
 			maxi = 0;
 			index = 0;
 			for (i=0;i<size;i++){
-				printf("%d:%d (%d,%d)\n",i,score[i],pxl[i].x,pxl[i].y);
+				//printf("%d:%d (%d,%d)\n",i,score[i],pxl[i].x,pxl[i].y);
 				if (score[i] > maxi){
 					maxi = score[i];
 					index = i;
