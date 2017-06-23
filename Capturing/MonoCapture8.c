@@ -11,6 +11,27 @@
 
 int frameready;
 
+void Stat(unsigned char *raw, int width, int height){
+	long nelements;
+	int index;
+	unsigned char min;
+	unsigned char max;
+	unsigned char mono;
+	
+	min = UCHAR_MAX;
+	max = 0;
+
+	nelements=width*height;
+	for(index=0;index<nelements;index++){
+		mono = (unsigned char)raw[index];
+		if (mono < min) min = mono;
+		if (mono > max) max = mono;
+	}
+	printf("\tMin\tMax\n");
+	printf("\t---\t---\n");
+	printf("mono\t%d\t%d\n\n",min, max);
+}
+
 void FitsWrite(unsigned char *raw, int width, int height, const char *filename){
     fitsfile *fptrout;
     int status = 0;
@@ -134,6 +155,7 @@ int main(int argc, char* argv[])
 		if (frameready){
 			BARRIER(Toupcam_PullStillImage(h,raw,8,&width,&height));
 			printf("Capture Still Image: %d x %d\n",width,height);
+			Stat(raw,width,height);
 			FitsWrite(raw,width,height,"mono.fits");
 			frameready = 0;
 			Toupcam_Stop(h);

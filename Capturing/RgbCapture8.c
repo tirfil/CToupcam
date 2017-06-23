@@ -11,6 +11,38 @@
 
 int frameready;
 
+void Stat3D(unsigned char *raw, int width, int height){
+	long nelements;
+	int index;
+	unsigned char minred, mingreen, minblue;
+	unsigned char maxred, maxgreen, maxblue;
+	unsigned char red,green,blue;
+	
+	minred = UCHAR_MAX;
+	mingreen = UCHAR_MAX;
+	minblue = UCHAR_MAX;
+	maxred = 0;
+	maxgreen = 0;
+	maxblue = 0;
+	nelements=width*height;
+	for(index=0;index<nelements;index++){
+		red = (unsigned char)raw[4*index];
+		green = (unsigned char)raw[4*index+1];
+		blue = (unsigned char)raw[4*index+2];
+		if (red < minred) minred = red;
+		if (green < mingreen) mingreen = green;
+		if (blue < minblue) minblue = blue;
+		if (red > maxred) maxred = red;
+		if (green > maxgreen) maxgreen = green;
+		if (blue > maxblue) maxblue = blue;
+	}
+	printf("\tMin\tMax\n");
+	printf("\t---\t---\n");
+	printf("red\t%d\t%d\n",minred, maxred);
+	printf("green\t%d\t%d\n",mingreen, maxgreen);
+	printf("blue\t%d\t%d\n\n",minblue,maxblue);
+}
+
 void Fits3DWrite(unsigned char *raw, int width, int height, const char *filename){
     fitsfile *fptrout;
     int status = 0;
@@ -54,7 +86,7 @@ void Fits3DWrite(unsigned char *raw, int width, int height, const char *filename
 }
 
 void EventCallBack(unsigned int event, void* cx){
-	printf("EventCallBack event=%d\n",event);
+	//printf("EventCallBack event=%d\n",event);
 	switch(event){
 		case TOUPCAM_EVENT_STILLIMAGE:
 			frameready = 1;
@@ -157,6 +189,7 @@ int main(int argc, char* argv[])
 		if (frameready){
 			BARRIER(Toupcam_PullStillImage(h,raw,32,&width,&height));
 			printf("Capture Still Image: %d x %d\n",width,height);
+			Stat3D(raw,width,height);
 			Fits3DWrite(raw,width,height,"rgb32.fits");
 			frameready = 0;
 			Toupcam_Stop(h);
