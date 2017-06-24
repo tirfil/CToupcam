@@ -137,8 +137,12 @@ int main(int argc, char* argv[])
 	BARRIER(Toupcam_put_eSize(h, 0));
 	BARRIER(Toupcam_put_Speed(h,0));
 	BARRIER(Toupcam_put_RealTime(h, 1));
+	BARRIER(Toupcam_get_Size(h,&width, &height));
 	
 	raw = malloc(sizeof(unsigned char)*width*height);
+	if (raw == NULL) {
+			printf("Error: cannot allocate memory\n");
+	}
 	
 	// clear cam buffer
 	while(Toupcam_PullStillImage(h, raw, 8, &width, &height) == 0){}
@@ -155,6 +159,9 @@ int main(int argc, char* argv[])
 		if (frameready){
 			BARRIER(Toupcam_PullStillImage(h,raw,8,&width,&height));
 			printf("Capture Still Image: %d x %d\n",width,height);
+			if (raw == NULL) {
+				printf("Error: no data\n");
+			}
 			Stat(raw,width,height);
 			FitsWrite(raw,width,height,"mono.fits");
 			frameready = 0;
