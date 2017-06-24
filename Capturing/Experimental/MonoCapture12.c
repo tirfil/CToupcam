@@ -137,6 +137,7 @@ int main(int argc, char* argv[])
 	BARRIER(Toupcam_put_eSize(h, 0));
 	BARRIER(Toupcam_put_Speed(h,0));
 	BARRIER(Toupcam_put_RealTime(h, 1));
+	BARRIER(Toupcam_get_Size(h,&width, &height));
 	
 	raw = malloc(sizeof(unsigned char)*width*height);
 	
