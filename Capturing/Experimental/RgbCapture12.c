@@ -11,45 +11,78 @@
 
 int frameready;
 
-void Stat(unsigned char *raw, int width, int height){
+void Stat3D(unsigned char *raw, int width, int height){
 	long nelements;
 	int index;
-	unsigned char min;
-	unsigned char max;
-	unsigned char mono;
+	unsigned char minred, mingreen, minblue;
+	unsigned char maxred, maxgreen, maxblue;
+	unsigned char red,green,blue;
 	
-	min = UCHAR_MAX;
-	max = 0;
-
+	minred = UCHAR_MAX;
+	mingreen = UCHAR_MAX;
+	minblue = UCHAR_MAX;
+	maxred = 0;
+	maxgreen = 0;
+	maxblue = 0;
 	nelements=width*height;
 	for(index=0;index<nelements;index++){
-		mono = (unsigned char)raw[index];
-		if (mono < min) min = mono;
-		if (mono > max) max = mono;
+		red = (unsigned char)raw[4*index];
+		green = (unsigned char)raw[4*index+1];
+		blue = (unsigned char)raw[4*index+2];
+		if (red < minred) minred = red;
+		if (green < mingreen) mingreen = green;
+		if (blue < minblue) minblue = blue;
+		if (red > maxred) maxred = red;
+		if (green > maxgreen) maxgreen = green;
+		if (blue > maxblue) maxblue = blue;
 	}
 	printf("\tMin\tMax\n");
 	printf("\t---\t---\n");
-	printf("mono\t%d\t%d\n\n",min, max);
+	printf("red\t%d\t%d\n",minred, maxred);
+	printf("green\t%d\t%d\n",mingreen, maxgreen);
+	printf("blue\t%d\t%d\n\n",minblue,maxblue);
 }
 
-void FitsWrite(unsigned char *raw, int width, int height, const char *filename){
+void Fits3DWrite(unsigned char *raw, int width, int height, const char *filename){
     fitsfile *fptrout;
     int status = 0;
-    long naxis=2;
-    long naxes[2];
-	unsigned long nelements;
+    unsigned int naxis=3;
+    unsigned int naxis3=2;
+    long naxes3[3];
+	long nelements;
+	int wcsaxes= 2;
+	unsigned char *red;
+    unsigned char *green;
+	unsigned char *blue;
 	int index;
 	
 	nelements=width*height;
 	
-	naxes[0]=width;
-	naxes[1]=height;
+	naxes3[0]=width;
+	naxes3[1]=height;
+	naxes3[2]=3;
 				
+	red = malloc(sizeof(unsigned char)*nelements);
+	green = malloc(sizeof(unsigned char)*nelements);
+	blue = malloc(sizeof(unsigned char)*nelements);
+	
+	for(index=0;index<nelements;index++){
+		red[index] = (unsigned char)raw[4*index];
+		green[index] = (unsigned char)raw[4*index+1];
+		blue[index] = (unsigned char)raw[4*index+2];
+	}
 	remove(filename);
 	fits_create_file(&fptrout,filename, &status);
-	fits_create_img(fptrout, BYTE_IMG, naxis, naxes, &status);
-	fits_write_img(fptrout, TBYTE, (long)1L, nelements, raw, &status);
+	fits_create_img(fptrout, BYTE_IMG, naxis, naxes3, &status);
+	fits_update_key(fptrout, TSTRING, "CSPACE","sRGB","",&status);
+	fits_update_key(fptrout, TINT, "WCSAXES", &wcsaxes, "", &status);
+	fits_write_img(fptrout, TBYTE, 1, nelements, red, &status);
+	fits_write_img(fptrout, TBYTE, nelements+1, nelements, green, &status);
+	fits_write_img(fptrout, TBYTE, 2*nelements+1, nelements, blue, &status);
 	fits_close_file(fptrout, &status);
+	free(red);
+	free(green);
+	free(blue);
 }
 
 void EventCallBack(unsigned int event, void* cx){
@@ -90,6 +123,7 @@ int main(int argc, char* argv[])
 		exit(0);
 	}
 
+	
 	model = arr[0].model;
 	printf("Model found  %s\n",model->name);
 	printf("Capabilities 0x%08x\n",model->flag);
@@ -125,7 +159,7 @@ int main(int argc, char* argv[])
 	printf("Exposure 	is %d uS\n",expo);
 	printf("Gain (x100) is %d \n",gain);
 	
-	BARRIER(Toupcam_put_Option(h,TOUPCAM_OPTION_BITDEPTH,0)); // 8 bits
+	BARRIER(Toupcam_put_Option(h,TOUPCAM_OPTION_BITDEPTH,1)); // 12 bits
 	//BARRIER(Toupcam_put_Option(h,TOUPCAM_OPTION_RGB48,1));
 	BARRIER(Toupcam_put_Option(h,TOUPCAM_OPTION_RAW,0)); // RGB mode
 	
@@ -138,10 +172,10 @@ int main(int argc, char* argv[])
 	BARRIER(Toupcam_put_Speed(h,0));
 	BARRIER(Toupcam_put_RealTime(h, 1));
 	
-	raw = malloc(sizeof(unsigned char)*width*height);
+	raw = malloc(sizeof(unsigned char)*width*height*4);
 	
 	// clear cam buffer
-	while(Toupcam_PullStillImage(h, raw, 8, &width, &height) == 0){}
+	while(Toupcam_PullStillImage(h, raw, 32, &width, &height) == 0){}
 	
 	BARRIER(Toupcam_StartPullModeWithCallback(h,EventCallBack,NULL));
 	
@@ -153,10 +187,10 @@ int main(int argc, char* argv[])
 	
 	while(1){
 		if (frameready){
-			BARRIER(Toupcam_PullStillImage(h,raw,8,&width,&height));
+			BARRIER(Toupcam_PullStillImage(h,raw,32,&width,&height));
 			printf("Capture Still Image: %d x %d\n",width,height);
-			Stat(raw,width,height);
-			FitsWrite(raw,width,height,"mono.fits");
+			Stat3D(raw,width,height);
+			Fits3DWrite(raw,width,height,"rgb32.fits");
 			frameready = 0;
 			Toupcam_Stop(h);
 			break;

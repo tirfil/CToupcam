@@ -125,7 +125,7 @@ int main(int argc, char* argv[])
 	printf("Exposure 	is %d uS\n",expo);
 	printf("Gain (x100) is %d \n",gain);
 	
-	BARRIER(Toupcam_put_Option(h,TOUPCAM_OPTION_BITDEPTH,0)); // 8 bits
+	BARRIER(Toupcam_put_Option(h,TOUPCAM_OPTION_BITDEPTH,1)); // 12 bits
 	//BARRIER(Toupcam_put_Option(h,TOUPCAM_OPTION_RGB48,1));
 	BARRIER(Toupcam_put_Option(h,TOUPCAM_OPTION_RAW,0)); // RGB mode
 	
