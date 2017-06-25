@@ -156,7 +156,7 @@ int main(int argc, char* argv[])
 	}
 	
 	// clear cam buffer
-	while(Toupcam_PullStillImage(h, raw, 8, &width, &height) == 0){}
+	while(Toupcam_PullStillImage(h, raw, 24, &width, &height) == 0){}
 	
 	BARRIER(Toupcam_StartPullModeWithCallback(h,EventCallBack,NULL));
 	
@@ -168,7 +168,7 @@ int main(int argc, char* argv[])
 	
 	while(1){
 		if (frameready){
-			BARRIER(Toupcam_PullStillImage(h,raw,8,&width,&height));
+			BARRIER(Toupcam_PullStillImage(h,raw,24,&width,&height));
 			printf("Capture Still Image: %d x %d\n",width,height);
 			if (raw == NULL) {
 				printf("Error: no data\n");
