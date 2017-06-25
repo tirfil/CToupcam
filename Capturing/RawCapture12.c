@@ -31,6 +31,37 @@ void FitsWrite(unsigned char *raw, int width, int height, const char *filename){
 	fits_close_file(fptrout, &status);
 }
 
+void FitsWrite16(unsigned char *raw, int width, int height, const char *filename){
+    fitsfile *fptrout;
+    int status = 0;
+    long naxis=2;
+    long naxes[2];
+	unsigned long nelements;
+	int index;
+	unsigned short *im;
+	
+	nelements=width*height;
+	naxes[0]=width;
+	naxes[1]=height;
+	
+	im = malloc(sizeof(unsigned short)*nelements);
+	
+	for (index=0;index<nelements*2;index++){
+		if (index%2 == 0){
+			im[index/2] = (unsigned short)raw[index];
+		} else {
+			im[index/2] += (unsigned short)raw[index]*256;
+		}
+	}
+				
+	remove(filename);
+	fits_create_file(&fptrout,filename, &status);
+	fits_create_img(fptrout, USHORT_IMG, naxis, naxes, &status);
+	fits_write_img(fptrout, TUSHORT, (long)1L, nelements, im, &status);
+	fits_close_file(fptrout, &status);
+	free(im);
+}
+
 void EventCallBack(unsigned int event, void* cx){
 	printf("EventCallBack event=%d\n",event);
 	switch(event){
@@ -91,7 +122,7 @@ int main(int argc, char* argv[])
 	//printf("Still resolution: %d\n",Toupcam_get_StillResolutionNumber(h));
 	//printf("Max bit depth: %d\n",Toupcam_get_MaxBitDepth(h));
 	BARRIER(Toupcam_get_ExpoAGainRange(h, &gain_min, &gain_max, &definition));
-	printf("Gain range: from %d to %d. Definition is %d\n",gain_min,gain_max,definition);
+	printf("Gain range: from %d to %d. Default is %d\n",gain_min,gain_max,definition);
 	if (gain > gain_max) {
 		gain = gain_max;
 		printf("Set gain to %d\n",gain);
@@ -119,6 +150,7 @@ int main(int argc, char* argv[])
 	BARRIER(Toupcam_put_RealTime(h, 1));
 	
 	raw = malloc(sizeof(unsigned char)*width*height*2);
+	//raw = malloc(sizeof(unsigned char)*width*height);
 	if (raw == NULL) {
 			printf("Error: cannot allocate memory\n");
 	}
@@ -141,7 +173,8 @@ int main(int argc, char* argv[])
 			if (raw == NULL) {
 				printf("Error: no data\n");
 			}
-			FitsWrite(raw,2*width,height,"raw.fits");
+			//FitsWrite(raw,2*width,height,"raw.fits");
+			FitsWrite16(raw,width,height,"raw16.fits");
 			frameready = 0;
 			Toupcam_Stop(h);
 			break;

@@ -146,7 +146,7 @@ int main(int argc, char* argv[])
 	//printf("Still resolution: %d\n",Toupcam_get_StillResolutionNumber(h));
 	//printf("Max bit depth: %d\n",Toupcam_get_MaxBitDepth(h));
 	BARRIER(Toupcam_get_ExpoAGainRange(h, &gain_min, &gain_max, &definition));
-	printf("Gain range: from %d to %d. Definition is %d\n",gain_min,gain_max,definition);
+	printf("Gain range: from %d to %d. Default is %d\n",gain_min,gain_max,definition);
 	if (gain > gain_max) {
 		gain = gain_max;
 		printf("Set gain to %d\n",gain);
