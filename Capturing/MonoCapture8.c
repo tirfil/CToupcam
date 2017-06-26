@@ -32,14 +32,19 @@ void Stat(unsigned char *raw, int width, int height){
 	printf("mono\t%d\t%d\n\n",min, max);
 }
 
-void FitsWrite(unsigned char *raw, int width, int height, const char *filename){
+void FitsWrite(unsigned char *raw, int width, int height, const char *filename, unsigned int* expo, unsigned short* gain){
     fitsfile *fptrout;
     int status = 0;
     long naxis=2;
     long naxes[2];
 	unsigned long nelements;
 	int index;
+	time_t current_time;
+	char* c_time_string;
 	
+	current_time = time(NULL);
+	c_time_string = ctime(&current_time);
+		
 	nelements=width*height;
 	
 	naxes[0]=width;
@@ -48,6 +53,10 @@ void FitsWrite(unsigned char *raw, int width, int height, const char *filename){
 	remove(filename);
 	fits_create_file(&fptrout,filename, &status);
 	fits_create_img(fptrout, BYTE_IMG, naxis, naxes, &status);
+	fits_update_key(fptrout, TSTRING, "DEVICE","Touptek CAM","CCD device name",&status);
+	fits_update_key(fptrout, TFLOAT, "EXPOSURE", expo, "Total Exposure Time (us)", &status);
+	fits_update_key(fptrout, TINT, "GAIN", gain, "CCD gain (x100)", &status);
+	fits_update_key(fptrout, TSTRING, "DATE", c_time_string, "Date & time", &status);
 	fits_write_img(fptrout, TBYTE, (long)1L, nelements, raw, &status);
 	fits_close_file(fptrout, &status);
 }
@@ -163,7 +172,7 @@ int main(int argc, char* argv[])
 				printf("Error: no data\n");
 			}
 			Stat(raw,width,height);
-			FitsWrite(raw,width,height,"mono.fits");
+			FitsWrite(raw,width,height,"mono.fits",&expo,&gain);
 			frameready = 0;
 			Toupcam_Stop(h);
 			break;

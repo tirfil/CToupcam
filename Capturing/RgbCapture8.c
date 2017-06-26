@@ -43,7 +43,7 @@ void Stat3D(unsigned char *raw, int width, int height){
 	printf("blue\t%d\t%d\n\n",minblue,maxblue);
 }
 
-void Fits3DWrite(unsigned char *raw, int width, int height, const char *filename){
+void Fits3DWrite(unsigned char *raw, int width, int height, const char *filename, unsigned int* expo, unsigned short* gain){
     fitsfile *fptrout;
     int status = 0;
     unsigned int naxis=3;
@@ -55,6 +55,11 @@ void Fits3DWrite(unsigned char *raw, int width, int height, const char *filename
     unsigned char *green;
 	unsigned char *blue;
 	int index;
+	time_t current_time;
+	char* c_time_string;
+	
+	current_time = time(NULL);
+	c_time_string = ctime(&current_time);
 	
 	nelements=width*height;
 	
@@ -74,6 +79,10 @@ void Fits3DWrite(unsigned char *raw, int width, int height, const char *filename
 	remove(filename);
 	fits_create_file(&fptrout,filename, &status);
 	fits_create_img(fptrout, BYTE_IMG, naxis, naxes3, &status);
+	fits_update_key(fptrout, TSTRING, "DEVICE","Touptek CAM","CCD device name",&status);
+	fits_update_key(fptrout, TFLOAT, "EXPOSURE", expo, "Total Exposure Time (us)", &status);
+	fits_update_key(fptrout, TINT, "GAIN", gain, "CCD gain (x100)", &status);
+	fits_update_key(fptrout, TSTRING, "DATE", c_time_string, "Date & time", &status);
 	fits_update_key(fptrout, TSTRING, "CSPACE","sRGB","",&status);
 	fits_update_key(fptrout, TINT, "WCSAXES", &wcsaxes, "", &status);
 	fits_write_img(fptrout, TBYTE, 1, nelements, red, &status);
@@ -197,7 +206,7 @@ int main(int argc, char* argv[])
 				printf("Error: no data\n");
 			}
 			Stat3D(raw,width,height);
-			Fits3DWrite(raw,width,height,"rgb32.fits");
+			Fits3DWrite(raw,width,height,"rgb32.fits",&expo,&gain);
 			frameready = 0;
 			Toupcam_Stop(h);
 			break;
