@@ -18,7 +18,7 @@ typedef struct{
 	void* data;
 } PushCxt;
 
-
+/*
 int frameready;
 
 void FitsWrite(unsigned char *raw, int width, int height, const char *filename){
@@ -40,7 +40,7 @@ void FitsWrite(unsigned char *raw, int width, int height, const char *filename){
 	fits_write_img(fptrout, TBYTE, (long)1L, nelements, raw, &status);
 	fits_close_file(fptrout, &status);
 }
-
+*/
 void FitsWrite16(unsigned char *raw, int width, int height, const char *filename){
     fitsfile *fptrout;
     int status = 0;
@@ -72,6 +72,7 @@ void FitsWrite16(unsigned char *raw, int width, int height, const char *filename
 	free(im);
 }
 
+/*
 void PullCallBack(unsigned int event, void* cx){
 	printf("EventCallBack event=%d\n",event);
 	switch(event){
@@ -81,6 +82,7 @@ void PullCallBack(unsigned int event, void* cx){
 	}
 
 }
+*/
 
 void PushCallBack(const void* pData, const BITMAPINFOHEADER* pHeader, BOOL bSnap, void* cx){
 	unsigned int width;
@@ -118,7 +120,7 @@ int main(int argc, char* argv[])
 	
 	printf("Library version: %s\n",Toupcam_Version());
 	
-	frameready = 0;
+	//frameready = 0;
 	
 	
 	cnt = Toupcam_Enum(arr);
@@ -176,7 +178,7 @@ int main(int argc, char* argv[])
 	BARRIER(Toupcam_put_Speed(h,0));
 	BARRIER(Toupcam_put_RealTime(h, 1));
 
-#ifdef PullMode		
+/*	
 	raw = malloc(sizeof(unsigned char)*width*height*2);
 	//raw = malloc(sizeof(unsigned char)*width*height);
 	if (raw == NULL) {
@@ -218,7 +220,7 @@ int main(int argc, char* argv[])
 	}
 	Toupcam_Close(h);
 	free(raw);
-#else
+*/
 	pushcxt.width = width;
 	pushcxt.height = height;
 	pushcxt.status = SNAP_START;
@@ -249,5 +251,4 @@ int main(int argc, char* argv[])
 	}
 	Toupcam_Close(h);
 	free(raw);
-#endif
 }
