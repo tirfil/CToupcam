@@ -8,16 +8,6 @@
 
 #define BARRIER(x) rc = x; if(rc != 0){ printf("BARRIER %08x at line: %d\n",rc,__LINE__); exit(rc);}
 
-#define SNAP_START 0
-#define SNAP_STOP  1
-
-typedef struct{
-	unsigned int width;
-	unsigned int height;
-	unsigned int status;
-	void* data;
-} PushCxt;
-
 
 int frameready;
 
@@ -72,7 +62,7 @@ void FitsWrite16(unsigned char *raw, int width, int height, const char *filename
 	free(im);
 }
 
-void PullCallBack(unsigned int event, void* cx){
+void EventCallBack(unsigned int event, void* cx){
 	printf("EventCallBack event=%d\n",event);
 	switch(event){
 		case TOUPCAM_EVENT_STILLIMAGE:
@@ -80,21 +70,6 @@ void PullCallBack(unsigned int event, void* cx){
 			return;
 	}
 
-}
-
-void PushCallBack(const void* pData, const BITMAPINFOHEADER* pHeader, BOOL bSnap, void* cx){
-	unsigned int width;
-	unsigned int height;
-	PushCxt* cxt;
-	cxt = (PushCxt*)cx;
-	if (cxt->status == SNAP_STOP) return;
-	width = cxt->width;
-	height = cxt->height;
-	if (pData != NULL && bSnap == TRUE){
-		memcpy(cxt->data,pData,width*height*2);
-		cxt->status = SNAP_STOP;
-	}
-	return;
 }
 
 int main(int argc, char* argv[])
@@ -113,8 +88,6 @@ int main(int argc, char* argv[])
 	unsigned int expo;
 	unsigned short gain;
 	unsigned int delta,threshold;
-	
-	PushCxt pushcxt;
 	
 	printf("Library version: %s\n",Toupcam_Version());
 	
@@ -175,19 +148,17 @@ int main(int argc, char* argv[])
 	BARRIER(Toupcam_put_eSize(h, 0));
 	BARRIER(Toupcam_put_Speed(h,0));
 	BARRIER(Toupcam_put_RealTime(h, 1));
-
-#ifdef PullMode		
+	
 	raw = malloc(sizeof(unsigned char)*width*height*2);
 	//raw = malloc(sizeof(unsigned char)*width*height);
 	if (raw == NULL) {
 			printf("Error: cannot allocate memory\n");
 	}
-
-
+	
 	// clear cam buffer
 	while(Toupcam_PullStillImage(h, raw, 24, &width, &height) == 0){}
 	
-	BARRIER(Toupcam_StartPullModeWithCallback(h,PullCallBack,NULL));
+	BARRIER(Toupcam_StartPullModeWithCallback(h,EventCallBack,NULL));
 	
 	Toupcam_Snap(h,0);
 	
@@ -218,36 +189,4 @@ int main(int argc, char* argv[])
 	}
 	Toupcam_Close(h);
 	free(raw);
-#else
-	pushcxt.width = width;
-	pushcxt.height = height;
-	pushcxt.status = SNAP_START;
-	raw = malloc(sizeof(unsigned char)*width*height*2);
-	pushcxt.data = raw;
-	BARRIER(Toupcam_StartPushMode(h,PushCallBack,&pushcxt));
-	
-	start = time(NULL);
-	
-	threshold = 15 + (unsigned int)expo/1000000;
-	
-	Toupcam_Snap(h,0);
-	
-	while(1){
-		if (pushcxt.status == SNAP_STOP){
-			printf("Capture Still Image: %d x %d\n",width,height);
-			FitsWrite16(raw,width,height,"raw16.fits");
-			Toupcam_Stop(h);
-			break;
-		}
-		current = time(NULL);
-		delta = (unsigned int)difftime(current,start);
-		if ( delta > threshold ){
-			printf("Timeout expires\n");
-			Toupcam_Stop(h);
-			break;
-		}
-	}
-	Toupcam_Close(h);
-	free(raw);
-#endif
 }

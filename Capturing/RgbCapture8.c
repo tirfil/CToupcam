@@ -80,8 +80,8 @@ void Fits3DWrite(unsigned char *raw, int width, int height, const char *filename
 	fits_create_file(&fptrout,filename, &status);
 	fits_create_img(fptrout, BYTE_IMG, naxis, naxes3, &status);
 	fits_update_key(fptrout, TSTRING, "DEVICE","Touptek CAM","CCD device name",&status);
-	fits_update_key(fptrout, TFLOAT, "EXPOSURE", expo, "Total Exposure Time (us)", &status);
-	fits_update_key(fptrout, TINT, "GAIN", gain, "CCD gain (x100)", &status);
+	fits_update_key(fptrout, TUINT, "EXPOSURE", expo, "Total Exposure Time (us)", &status);
+	fits_update_key(fptrout, TUSHORT, "GAIN", gain, "CCD gain (x100)", &status);
 	fits_update_key(fptrout, TSTRING, "DATE", c_time_string, "Date & time", &status);
 	fits_update_key(fptrout, TSTRING, "CSPACE","sRGB","",&status);
 	fits_update_key(fptrout, TINT, "WCSAXES", &wcsaxes, "", &status);
