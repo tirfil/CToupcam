@@ -3,12 +3,14 @@
 #include "fitsio.h"
 
 // 
-// outputs are red.fits green.fits blue.fits and luminance.fits
 //
-// |A|B|
-// |C|D|
 //
-
+// pa pb
+// pc pd
+// 
+// p11 p01
+// p10 p00
+//
 
 int main(int argc, char *argv[])
 {
