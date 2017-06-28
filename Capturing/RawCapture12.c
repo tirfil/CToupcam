@@ -41,7 +41,7 @@ void FitsWrite(unsigned char *raw, int width, int height, const char *filename){
 	fits_close_file(fptrout, &status);
 }
 */
-void FitsWrite16(unsigned char *raw, int width, int height, const char *filename){
+void FitsWrite16(unsigned char *raw, int width, int height, const char *filename,unsigned int* expo, unsigned short* gain){
     fitsfile *fptrout;
     int status = 0;
     long naxis=2;
@@ -49,6 +49,17 @@ void FitsWrite16(unsigned char *raw, int width, int height, const char *filename
 	unsigned long nelements;
 	int index;
 	unsigned short *im;
+	time_t current_time;
+	char* c_time_string;
+	unsigned short min;
+	unsigned short max;
+	unsigned short value;
+	
+	min = USHRT_MAX;
+	max = 0;
+	
+	current_time = time(NULL);
+	c_time_string = ctime(&current_time);
 	
 	nelements=width*height;
 	naxes[0]=width;
@@ -61,12 +72,25 @@ void FitsWrite16(unsigned char *raw, int width, int height, const char *filename
 			im[index/2] = (unsigned short)raw[index];
 		} else {
 			im[index/2] += (unsigned short)raw[index]*256;
+			value = im[index/2];
+			if (value < min) min = value;
+			if (value > max) max = value;
+			
 		}
 	}
+	
+	printf("\tMin\tMax\n");
+	printf("\t---\t---\n");
+	printf("Bayer\t%d\t%d\n\n",min, max);
+	
 				
 	remove(filename);
 	fits_create_file(&fptrout,filename, &status);
 	fits_create_img(fptrout, USHORT_IMG, naxis, naxes, &status);
+	fits_update_key(fptrout, TSTRING, "DEVICE","Touptek CAM","CCD device name",&status);
+	fits_update_key(fptrout, TUINT, "EXPOSURE", expo, "Total Exposure Time (us)", &status);
+	fits_update_key(fptrout, TUSHORT, "GAIN", gain, "CCD gain (x100)", &status);
+	fits_update_key(fptrout, TSTRING, "DATE", c_time_string, "Date & time", &status);
 	fits_write_img(fptrout, TUSHORT, (long)1L, nelements, im, &status);
 	fits_close_file(fptrout, &status);
 	free(im);
@@ -237,7 +261,7 @@ int main(int argc, char* argv[])
 	while(1){
 		if (pushcxt.status == SNAP_STOP){
 			printf("Capture Still Image: %d x %d\n",width,height);
-			FitsWrite16(raw,width,height,"raw16.fits");
+			FitsWrite16(raw,width,height,"raw16.fits",&expo,&gain);
 			Toupcam_Stop(h);
 			break;
 		}
