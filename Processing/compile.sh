@@ -5,4 +5,5 @@ gcc substract8.c -lcfitsio -o substract8
 gcc divide8.c -lcfitsio -o divide8
 gcc center2.c -lm -lcfitsio -o center2 
 gcc center3.c -lm -lcfitsio -o center3 
+gcc bayer2rgb.c -lcfitsio -o bayer2rgb
 

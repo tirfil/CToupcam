@@ -108,19 +108,19 @@ int main(int argc, char *argv[])
 				naxes[0]--; // one row and columm less
 				naxes[1]--;
 				
-				fits_create_file(&fptrout,"colora.fits", &status);
+				fits_create_file(&fptrout,"red.fits", &status);
 				fits_create_img(fptrout, USHORT_IMG, naxis, naxes, &status);
 				fits_write_img(fptrout, TUSHORT, 1, nelements, colora, &status);
 				fits_close_file(fptrout, &status);
-				fits_create_file(&fptrout,"colorb.fits", &status);
+				fits_create_file(&fptrout,"green.fits", &status);
 				fits_create_img(fptrout, USHORT_IMG, naxis, naxes, &status);
 				fits_write_img(fptrout, TUSHORT, 1, nelements, colorb, &status);
 				fits_close_file(fptrout, &status);
-				fits_create_file(&fptrout,"colorc.fits", &status);
-				fits_create_img(fptrout, USHORT_IMG, naxis, naxes, &status);
-				fits_write_img(fptrout, TUSHORT, 1, nelements, colorc, &status);
-				fits_close_file(fptrout, &status);
-				fits_create_file(&fptrout,"colord.fits", &status);
+				//fits_create_file(&fptrout,"colorc.fits", &status);
+				//fits_create_img(fptrout, USHORT_IMG, naxis, naxes, &status);
+				//fits_write_img(fptrout, TUSHORT, 1, nelements, colorc, &status);
+				//fits_close_file(fptrout, &status);
+				fits_create_file(&fptrout,"blue.fits", &status);
 				fits_create_img(fptrout, USHORT_IMG, naxis, naxes, &status);
 				fits_write_img(fptrout, TUSHORT, 1, nelements, colord, &status);
 				fits_close_file(fptrout, &status);
