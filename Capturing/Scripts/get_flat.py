@@ -29,9 +29,9 @@ os.chdir("work")
 for i in range(number):
 	now = time.localtime()
 	base =time.strftime("%Y%m%d_%H%M%S",now)
-	cmd = path + "RgbCapture8 " + duration + " " + gain
+	cmd = path + "RawCapture12 " + duration + " " + gain
 	os.system(cmd)
 	destination = "../results/raw/" + directory + "/" + base + "_" + str(i) +".fits"
-	shutil.move("rgb32.fits",destination)
+	shutil.move("raw16.fits",destination)
 	
 	
