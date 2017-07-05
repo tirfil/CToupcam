@@ -139,7 +139,7 @@ int rc; // for BARRIER
 			printf("dir: %d\n",dir);
 			BARRIER(Toupcam_ST4PlusGuide(h,dir,factor/2));
 			sleep(DELAYSEC);
-			info->step = 9;
+			info->step = 10;
 			return 0;
 		}
 		// no change
@@ -147,6 +147,10 @@ int rc; // for BARRIER
 	}
 	if (info->step == 9){
 		info->x = x;
+		info->step = 8;
+		return 0;
+	}
+	if (info->step == 10){
 		info->y = y;
 		info->step = 8;
 		return 0;
