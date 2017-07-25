@@ -230,7 +230,8 @@ main(int argc, char* argv[]){
 	
 	done = 0;
 
-	timeout = 500;
+	//timeout = 500;
+	timeout = 0;
 	
 	gain = 100;
 	expo_ms = 1000;
@@ -462,16 +463,21 @@ main(int argc, char* argv[]){
 	//BARRIER(write_register_b(0x3014,0x0000));	
 	BARRIER(write_register_b(0x3014,gain_reg));	// IMX290_AGAIN
 	
+	//sleep(expo_ms/1000+1);
+	
 	BARRIER(libusb_control_transfer(handle,0x40,0x01,0x0003,0x000F,buffer,0,timeout)); 
 	
-	sleep(expo_ms/1000+1);
+	//sleep(expo_ms/1000+2);
+	usleep(expo_ms+1000);
 	
 	size = 0;
 	do {
-		BARRIER(libusb_bulk_transfer(handle,0x82,buffer+size,0x20000,&transferred,timeout));
+		BARRIER(libusb_bulk_transfer(handle,0x82,buffer+size,0x20000,&transferred,0));
 		size += transferred;
-		//printf("transferred=%d total=%d\n",transferred,size);
+		printf("transferred=%d total=%d\n",transferred,size);
 	} while(transferred==0x20000);
+	//} while(size != 4147200);
+	//} while(size < 4100000);
 	if (size)
 		//rc_write(buffer,size,"raw.dat");
 		printf("Capturing %d bytes\n\n",size);
