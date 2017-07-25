@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <time.h>
 #include <math.h>
+#include <unistd.h>
 
 #include "libusb.h"
 #include "fitsio.h"
@@ -223,8 +224,9 @@ main(int argc, char* argv[]){
 	
 	unsigned int expo_ms;
 	unsigned int temp;
-	unsigned int shs;
-	unsigned short step;
+	unsigned int shs1;
+	unsigned short reg5000;
+	unsigned short reg4000;
 	
 	done = 0;
 
@@ -260,24 +262,22 @@ main(int argc, char* argv[]){
 	
 	/* NumXhsEshrSpeed = 4.89 per ms */
 	
-
-	
 	temp = (int)ceil((double)expo_ms*4.89);
 	
 	if (temp > 1024 ){
-		shs = 7;
-		step = temp + 7;
-		if (temp > 65529){
-			printf("exposure error\n");
-			exit(0);
-		}
+		shs1 = 7;
+		temp = temp + 7;
+		reg5000 = temp & 0xffff;
+		reg4000 = (temp >> 16) & 0xffff;
 	} else {
-		step = 1125; // 0x465
-		shs = 1125 - temp;
+		reg5000 = 1125; // 0x465
+		shs1 = 1125 - temp;
+		reg4000 = 0;
 	}
 	
-	printf("shs= 0x%06x\n",shs);
-	printf("step= 0x%04x\n",step);
+	printf("shs1= 0x%06x\n",shs1);
+	printf("reg5000= 0x%04x\n",reg5000);
+	printf("reg4000= 0x%04x\n",reg4000);
 	
 	//key = 0x0000;
 	key = 0x41f2;	
@@ -290,7 +290,7 @@ main(int argc, char* argv[]){
 	}
 	
 	BARRIER(libusb_control_transfer(handle,0xC0,0x16,key,0x0000,buffer,2,timeout)); // crypt key set at 0x0000
-	printf("%d\n",buffer[0]);
+	//printf("%d\n",buffer[0]);
 	buffer[0] = 0;
 	
 	// f2ed70c6 b6d926b4 71dfbbbc 8c34fdbf -> 3c57bc13 05a8ee00 3845fc01 cf96e204 (41f2)
@@ -314,15 +314,15 @@ main(int argc, char* argv[]){
 	// ca3bda46 898f1314 0d00d443 7dbead6b -> e856f762 a7ae4b50 2032e954 8fd4c180 (caca)
 	BARRIER(libusb_control_transfer(handle,0x40,0x4a,0x0000,0x0000,challenge,16,timeout));  
 	BARRIER(libusb_control_transfer(handle,0xC0,0x6a,0x0000,0x0000,buffer,16,timeout));
-	for (i=0;i<16;i++){
-		printf("%02x",buffer[i]);
-	}
-	printf("\n");
+	//for (i=0;i<16;i++){
+		//printf("%02x",buffer[i]);
+	//}
+	//printf("\n");
 	BARRIER(libusb_control_transfer(handle,0xC0,0x20,0x0000,0x0000,buffer,4,timeout));
-	for (i=0;i<4;i++){
-		printf("%02x",buffer[i]);
-	}
-	printf("\n");
+	//for (i=0;i<4;i++){
+		//printf("%02x",buffer[i]);
+	//}
+	//printf("\n");
 	BARRIER(libusb_control_transfer(handle,0xC0,0x20,0x0000,0x0000,buffer,923,timeout));
 	/*for (i=0;i<923;i++){
 		printf("%02x",buffer[i]);
@@ -434,13 +434,14 @@ main(int argc, char* argv[]){
 	//BARRIER(write_register_b(0x3020,0x0034)); //IMX290_SHS1_LSB
 	//BARRIER(write_register_b(0x3021,0x0004)); //IMX290_SHS1_MSB
 	//BARRIER(write_register_b(0x3022,0x0000)); //IMX290_SHS1_HSB
-	BARRIER(write_register_b(0x3020,(shs & 0xff))); 		//IMX290_SHS1_LSB
-	BARRIER(write_register_b(0x3021,(shs >> 8) & 0xff)); 	//IMX290_SHS1_MSB
-	BARRIER(write_register_b(0x3022,(shs >> 16) & 0x03)); 	//IMX290_SHS1_HSB
+	BARRIER(write_register_b(0x3020,(shs1 & 0xff))); 		//IMX290_SHS1_LSB
+	BARRIER(write_register_b(0x3021,(shs1 >> 8) & 0xff)); 	//IMX290_SHS1_MSB
+	BARRIER(write_register_b(0x3022,(shs1 >> 16) & 0x03)); 	//IMX290_SHS1_HSB
 	
-	BARRIER(write_register_d(0x4000,0x0000));
+	//BARRIER(write_register_d(0x4000,0x0000));
 	//BARRIER(write_register_d(0x5000,0x0465));
-	BARRIER(write_register_d(0x5000,step));
+	BARRIER(write_register_d(0x4000,reg4000));
+	BARRIER(write_register_d(0x5000,reg5000));
 	BARRIER(write_register_b(0x3001,0x0000)); 
 	BARRIER(write_register_d(0x0a00,0x0000));
 	BARRIER(write_register_d(0x0a00,0xffff));	
@@ -461,16 +462,19 @@ main(int argc, char* argv[]){
 	//BARRIER(write_register_b(0x3014,0x0000));	
 	BARRIER(write_register_b(0x3014,gain_reg));	// IMX290_AGAIN
 	
-	BARRIER(libusb_control_transfer(handle,0x40,0x01,0x0003,0x000F,buffer,0,timeout));
+	BARRIER(libusb_control_transfer(handle,0x40,0x01,0x0003,0x000F,buffer,0,timeout)); 
+	
+	sleep(expo_ms/1000+1);
 	
 	size = 0;
 	do {
 		BARRIER(libusb_bulk_transfer(handle,0x82,buffer+size,0x20000,&transferred,timeout));
 		size += transferred;
-		printf("transferred=%d total=%d\n",transferred,size);
+		//printf("transferred=%d total=%d\n",transferred,size);
 	} while(transferred==0x20000);
 	if (size)
 		//rc_write(buffer,size,"raw.dat");
+		printf("Capturing %d bytes\n\n",size);
 		FitsWrite16(buffer,1920,1080,"usb.fits");
 		//FitsWrite16(buffer,1936,1096,"usb.fits");
 	
