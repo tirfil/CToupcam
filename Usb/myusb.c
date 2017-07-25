@@ -8,6 +8,31 @@
 
 #include "libusb.h"
 #include "fitsio.h"
+/*
+ * 
+ * https://github.com/AnsonLuo/e100_sdk_v1.2
+ * 
+    IMX290_STANDBY                  = 0x3000,
+    IMX290_MASTERSTOP               = 0x3002,
+    IMX290_RESET                    = 0x3003,
+    IMX290_AGAIN                    = 0x3014,
+    IMX290_VMAX_LSB                 = 0x3018,
+    IMX290_VMAX_MSB                 = 0x3019,
+    IMX290_VMAX_HSB                 = 0x301A,
+    IMX290_SHS1_LSB                 = 0x3020,
+    IMX290_SHS1_MSB                 = 0x3021,
+    IMX290_SHS1_HSB                 = 0x3022,
+    IMX290_SHS2_LSB                 = 0x3024,
+    IMX290_SHS2_MSB                 = 0x3025,
+    IMX290_SHS2_HSB                 = 0x3026,
+    IMX290_RHS1_LSB                 = 0x3030,
+    IMX290_RHS1_MSB                 = 0x3031,
+    IMX290_RHS1_HSB                 = 0x3032,
+    IMX290_DOL_FORMAT               = 0x3045,
+    IMX290_DOL_SYNCSIGNAL           = 0x3106,
+    IMX290_DOL_HBFIXEN              = 0x3107,
+	IMX290_NULL0_SIZEV 				= 0x3415,
+*/
 
 #define BARRIER(x) rc = x; if(rc < 0){ printf("BARRIER %08x at line: %d\n",rc,__LINE__); exit(rc);}
 
@@ -135,30 +160,30 @@ void FitsWrite16(unsigned char *raw, int width, int height, const char *filename
 	free(im);
 }
 
-void mycallback(struct libusb_transfer *xfr)
-{
-    printf("mycallback\n");
-    switch(xfr->status)
-    {
-        case LIBUSB_TRANSFER_COMPLETED:
-            // Success here, data transfered are inside 
-            // xfr->buffer
-            // and the length is
-            // xfr->actual_length
-            done = 1;
-            break;
-        case LIBUSB_TRANSFER_CANCELLED:
-        case LIBUSB_TRANSFER_NO_DEVICE:
-        case LIBUSB_TRANSFER_TIMED_OUT:
-        case LIBUSB_TRANSFER_ERROR:
-        case LIBUSB_TRANSFER_STALL:
-        case LIBUSB_TRANSFER_OVERFLOW:
-            // Various type of errors here
-            printf("xfr status= %d\n",xfr->status);
-            done = 3;
-            break;
-    }
-}
+//void mycallback(struct libusb_transfer *xfr)
+//{
+    //printf("mycallback\n");
+    //switch(xfr->status)
+    //{
+        //case LIBUSB_TRANSFER_COMPLETED:
+            //// Success here, data transfered are inside 
+            //// xfr->buffer
+            //// and the length is
+            //// xfr->actual_length
+            //done = 1;
+            //break;
+        //case LIBUSB_TRANSFER_CANCELLED:
+        //case LIBUSB_TRANSFER_NO_DEVICE:
+        //case LIBUSB_TRANSFER_TIMED_OUT:
+        //case LIBUSB_TRANSFER_ERROR:
+        //case LIBUSB_TRANSFER_STALL:
+        //case LIBUSB_TRANSFER_OVERFLOW:
+            //// Various type of errors here
+            //printf("xfr status= %d\n",xfr->status);
+            //done = 3;
+            //break;
+    //}
+//}
 
 int write_register_b(unsigned short address,unsigned short data){
 	unsigned short cadd;
@@ -196,21 +221,66 @@ main(int argc, char* argv[]){
 	unsigned short gain;
 	unsigned short gain_reg;
 	
+	unsigned int expo_ms;
+	unsigned int temp;
+	unsigned int shs;
+	unsigned short step;
+	
 	done = 0;
-	
-	//key = 0x0000;
-	
-	key = 0x41f2;
-	
+
 	timeout = 500;
 	
 	gain = 100;
+	expo_ms = 1000;
+	
+	if (argc != 3) {
+		printf("Usage: %s expo_time_ms gain_x_100\n",argv[0]);
+		exit(0);
+	}
+	
+	expo_ms = atoi(argv[1]); // ms
+	gain = atoi(argv[2]);
 	
 	
 	if (gain > 5000) gain = 5000;
 	if (gain < 100) gain = 100;
 	
 	gain_reg = (int)(20.0*log((double)gain/100.0)/log(2.0));
+	
+	printf("gain_reg= 0x%04x\n",gain_reg);
+	
+	/*
+	UINT32 SHS1 = IMX290Ctrl.Status.ModeInfo.NumExposureStepPerFrame - NumXhsEshrSpeed;
+	IMX290_RegRW(IMX290_SHS1_LSB, (SHS1 & 0xff)); 
+    IMX290_RegRW(IMX290_SHS1_MSB, (SHS1 >> 8) & 0xff);
+	IMX290_RegRW(IMX290_SHS1_HSB, (SHS1 >> 16) & 0x03);
+	*/
+	
+	/* IMX290Ctrl.Status.ModeInfo.NumExposureStepPerFrame = @ 0x5000 */
+	
+	/* NumXhsEshrSpeed = 4.89 per ms */
+	
+
+	
+	temp = (int)ceil((double)expo_ms*4.89);
+	
+	if (temp > 1024 ){
+		shs = 7;
+		step = temp + 7;
+		if (temp > 65529){
+			printf("exposure error\n");
+			exit(0);
+		}
+	} else {
+		step = 1125; // 0x465
+		shs = 1125 - temp;
+	}
+	
+	printf("shs= 0x%06x\n",shs);
+	printf("step= 0x%04x\n",step);
+	
+	//key = 0x0000;
+	key = 0x41f2;	
 	
 	keyrot = ((key << 12) & 0xffff) + (key >> 4);
 	
@@ -260,7 +330,7 @@ main(int argc, char* argv[]){
 	printf("\n");*/	
 	BARRIER(libusb_control_transfer(handle,0xC0,0x0a,0x0000,0x301e,buffer,3,timeout));
 	
-	BARRIER(write_register_b(0x3003,0x0001));
+	BARRIER(write_register_b(0x3003,0x0001)); // IMX290_RESET
 	BARRIER(write_register_b(0x305c,0x0018));
 	BARRIER(write_register_b(0x305d,0x0000));
 	BARRIER(write_register_b(0x305e,0x0020));
@@ -268,7 +338,7 @@ main(int argc, char* argv[]){
 	
 	BARRIER(write_register_b(0x315e,0x001a));
 	BARRIER(write_register_b(0x3164,0x001a));
-	BARRIER(write_register_b(0x3048,0x0049));
+	BARRIER(write_register_b(0x3048,0x0049)); 
 	BARRIER(write_register_b(0x300f,0x0000));
 	BARRIER(write_register_b(0x3010,0x0021));	
 	
@@ -351,23 +421,27 @@ main(int argc, char* argv[]){
 	BARRIER(write_register_d(0x8000,0x3520));	//
 	
 	BARRIER(write_register_b(0x3001,0x0001));
-	BARRIER(write_register_b(0x3020,0x0007));
-	BARRIER(write_register_b(0x3021,0x0000));	
-	BARRIER(write_register_b(0x3022,0x0000));
+	BARRIER(write_register_b(0x3020,0x0007)); //IMX290_SHS1_LSB
+	BARRIER(write_register_b(0x3021,0x0000)); //IMX290_SHS1_MSB	
+	BARRIER(write_register_b(0x3022,0x0000)); //IMX290_SHS1_HSB
 		
 	BARRIER(write_register_d(0x4000,0x0000));
 	BARRIER(write_register_d(0x5000,0x04eb)); // change with gain/exposure ?
 
 	BARRIER(write_register_b(0x3001,0x0000));
-	BARRIER(write_register_b(0x3000,0x0000));
+	BARRIER(write_register_b(0x3000,0x0000)); //IMX290_STANDBY
 	BARRIER(write_register_b(0x3001,0x0001));
-	BARRIER(write_register_b(0x3020,0x0034));
-	BARRIER(write_register_b(0x3021,0x0004));	
-	BARRIER(write_register_b(0x3022,0x0000));
+	//BARRIER(write_register_b(0x3020,0x0034)); //IMX290_SHS1_LSB
+	//BARRIER(write_register_b(0x3021,0x0004)); //IMX290_SHS1_MSB
+	//BARRIER(write_register_b(0x3022,0x0000)); //IMX290_SHS1_HSB
+	BARRIER(write_register_b(0x3020,(shs & 0xff))); 		//IMX290_SHS1_LSB
+	BARRIER(write_register_b(0x3021,(shs >> 8) & 0xff)); 	//IMX290_SHS1_MSB
+	BARRIER(write_register_b(0x3022,(shs >> 16) & 0x03)); 	//IMX290_SHS1_HSB
 	
 	BARRIER(write_register_d(0x4000,0x0000));
-	BARRIER(write_register_d(0x5000,0x0465));
-	BARRIER(write_register_b(0x3001,0x0000));
+	//BARRIER(write_register_d(0x5000,0x0465));
+	BARRIER(write_register_d(0x5000,step));
+	BARRIER(write_register_b(0x3001,0x0000)); 
 	BARRIER(write_register_d(0x0a00,0x0000));
 	BARRIER(write_register_d(0x0a00,0xffff));	
 	
@@ -385,7 +459,7 @@ main(int argc, char* argv[]){
 	BARRIER(write_register_d(0x5000,0x04eb)); // change with gain/exposure ?
 	BARRIER(write_register_b(0x3001,0x0000));
 	//BARRIER(write_register_b(0x3014,0x0000));	
-	BARRIER(write_register_b(0x3014,gain_reg));	
+	BARRIER(write_register_b(0x3014,gain_reg));	// IMX290_AGAIN
 	
 	BARRIER(libusb_control_transfer(handle,0x40,0x01,0x0003,0x000F,buffer,0,timeout));
 	
@@ -449,7 +523,7 @@ main(int argc, char* argv[]){
 
 	BARRIER(write_register_d(0x0a00,0x0000));
 	BARRIER(write_register_d(0x0a00,0x0000));
-	BARRIER(write_register_b(0x3003,0x0001));
+	BARRIER(write_register_b(0x3003,0x0001)); //IMX290_RESET
 	
 	BARRIER(libusb_control_transfer(handle,0x40,0x01,0x0000,0x000F,buffer,0,timeout));
 	BARRIER(libusb_control_transfer(handle,0xC0,0x17,0x0000,0x0000,buffer,2,timeout)); // remove crypto ?
