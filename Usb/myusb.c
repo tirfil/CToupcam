@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <time.h>
+#include <math.h>
 
 #include "libusb.h"
 #include "fitsio.h"
@@ -93,6 +94,7 @@ void FitsWrite16(unsigned char *raw, int width, int height, const char *filename
 	unsigned short min;
 	unsigned short max;
 	unsigned short value;
+
 	
 	min = USHRT_MAX;
 	max = 0;
@@ -191,6 +193,9 @@ main(int argc, char* argv[]){
 	
 	int i;
 	
+	unsigned short gain;
+	unsigned short gain_reg;
+	
 	done = 0;
 	
 	//key = 0x0000;
@@ -199,6 +204,13 @@ main(int argc, char* argv[]){
 	
 	timeout = 500;
 	
+	gain = 100;
+	
+	
+	if (gain > 5000) gain = 5000;
+	if (gain < 100) gain = 100;
+	
+	gain_reg = (int)(20.0*log((double)gain/100.0)/log(2.0));
 	
 	keyrot = ((key << 12) & 0xffff) + (key >> 4);
 	
@@ -372,7 +384,8 @@ main(int argc, char* argv[]){
 	BARRIER(write_register_d(0x4000,0x0000));
 	BARRIER(write_register_d(0x5000,0x04eb)); // change with gain/exposure ?
 	BARRIER(write_register_b(0x3001,0x0000));
-	BARRIER(write_register_b(0x3014,0x0000));		
+	//BARRIER(write_register_b(0x3014,0x0000));	
+	BARRIER(write_register_b(0x3014,gain_reg));	
 	
 	BARRIER(libusb_control_transfer(handle,0x40,0x01,0x0003,0x000F,buffer,0,timeout));
 	
