@@ -422,27 +422,32 @@ main(int argc, char* argv[]){
 	BARRIER(write_register_d(0x8000,0x3520));	//
 	
 	BARRIER(write_register_b(0x3001,0x0001));
-	BARRIER(write_register_b(0x3020,0x0007)); //IMX290_SHS1_LSB
-	BARRIER(write_register_b(0x3021,0x0000)); //IMX290_SHS1_MSB	
-	BARRIER(write_register_b(0x3022,0x0000)); //IMX290_SHS1_HSB
-		
-	BARRIER(write_register_d(0x4000,0x0000));
-	BARRIER(write_register_d(0x5000,0x04eb)); // change with gain/exposure ?
-
-	BARRIER(write_register_b(0x3001,0x0000));
-	BARRIER(write_register_b(0x3000,0x0000)); //IMX290_STANDBY
-	BARRIER(write_register_b(0x3001,0x0001));
-	//BARRIER(write_register_b(0x3020,0x0034)); //IMX290_SHS1_LSB
-	//BARRIER(write_register_b(0x3021,0x0004)); //IMX290_SHS1_MSB
+	//BARRIER(write_register_b(0x3020,0x0007)); //IMX290_SHS1_LSB
+	//BARRIER(write_register_b(0x3021,0x0000)); //IMX290_SHS1_MSB	
 	//BARRIER(write_register_b(0x3022,0x0000)); //IMX290_SHS1_HSB
 	BARRIER(write_register_b(0x3020,(shs1 & 0xff))); 		//IMX290_SHS1_LSB
 	BARRIER(write_register_b(0x3021,(shs1 >> 8) & 0xff)); 	//IMX290_SHS1_MSB
 	BARRIER(write_register_b(0x3022,(shs1 >> 16) & 0x03)); 	//IMX290_SHS1_HSB
-	
+		
 	//BARRIER(write_register_d(0x4000,0x0000));
-	//BARRIER(write_register_d(0x5000,0x0465));
+	//BARRIER(write_register_d(0x5000,0x04eb)); // change with gain/exposure ?
 	BARRIER(write_register_d(0x4000,reg4000));
 	BARRIER(write_register_d(0x5000,reg5000));
+
+	BARRIER(write_register_b(0x3001,0x0000));
+	BARRIER(write_register_b(0x3000,0x0000)); //IMX290_STANDBY
+	BARRIER(write_register_b(0x3001,0x0001));
+	BARRIER(write_register_b(0x3020,0x0034)); //IMX290_SHS1_LSB
+	BARRIER(write_register_b(0x3021,0x0004)); //IMX290_SHS1_MSB
+	BARRIER(write_register_b(0x3022,0x0000)); //IMX290_SHS1_HSB
+	//BARRIER(write_register_b(0x3020,(shs1 & 0xff))); 		//IMX290_SHS1_LSB
+	//BARRIER(write_register_b(0x3021,(shs1 >> 8) & 0xff)); 	//IMX290_SHS1_MSB
+	//BARRIER(write_register_b(0x3022,(shs1 >> 16) & 0x03)); 	//IMX290_SHS1_HSB
+	
+	BARRIER(write_register_d(0x4000,0x0000));
+	BARRIER(write_register_d(0x5000,0x0465));
+	//BARRIER(write_register_d(0x4000,reg4000));
+	//BARRIER(write_register_d(0x5000,reg5000));
 	BARRIER(write_register_b(0x3001,0x0000)); 
 	BARRIER(write_register_d(0x0a00,0x0000));
 	BARRIER(write_register_d(0x0a00,0xffff));	
@@ -457,8 +462,10 @@ main(int argc, char* argv[]){
 	BARRIER(write_register_b(0x3021,0x0000));
 	BARRIER(write_register_b(0x3022,0x0000));
 	
-	BARRIER(write_register_d(0x4000,0x0000));
-	BARRIER(write_register_d(0x5000,0x04eb)); // change with gain/exposure ?
+	//BARRIER(write_register_d(0x4000,0x0000));
+	//BARRIER(write_register_d(0x5000,0x04eb)); // change with gain/exposure ?
+	BARRIER(write_register_d(0x4000,reg4000));
+	BARRIER(write_register_d(0x5000,reg5000));
 	BARRIER(write_register_b(0x3001,0x0000));
 	//BARRIER(write_register_b(0x3014,0x0000));	
 	BARRIER(write_register_b(0x3014,gain_reg));	// IMX290_AGAIN
@@ -468,7 +475,7 @@ main(int argc, char* argv[]){
 	BARRIER(libusb_control_transfer(handle,0x40,0x01,0x0003,0x000F,buffer,0,timeout)); 
 	
 	//sleep(expo_ms/1000+2);
-	usleep(expo_ms+1000);
+	//usleep(1000*expo_ms+1000000);
 	
 	size = 0;
 	do {
