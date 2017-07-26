@@ -36,7 +36,7 @@
 */
 
 #define BARRIER(x) rc = x; if(rc < 0){ printf("BARRIER %08x at line: %d\n",rc,__LINE__); exit(rc);}
-
+#define BARRIER0(x) rc = x; if(rc != 0){ printf("BARRIER0 %08x at line: %d\n",rc,__LINE__); exit(rc);}
 
 static struct libusb_device_handle *handle = NULL;
 static int seq = 1;
@@ -227,6 +227,9 @@ main(int argc, char* argv[]){
 	unsigned int shs1;
 	unsigned short reg5000;
 	unsigned short reg4000;
+	unsigned int maxsize;
+	
+	maxsize = 4147200;
 	
 	done = 0;
 
@@ -479,10 +482,10 @@ main(int argc, char* argv[]){
 	
 	size = 0;
 	do {
-		BARRIER(libusb_bulk_transfer(handle,0x82,buffer+size,0x20000,&transferred,0));
+		BARRIER0(libusb_bulk_transfer(handle,0x82,buffer+size,maxsize,&transferred,0));
 		size += transferred;
 		printf("transferred=%d total=%d\n",transferred,size);
-	} while(transferred==0x20000);
+	} while(transferred==maxsize);
 	//} while(size != 4147200);
 	//} while(size < 4100000);
 	if (size)
