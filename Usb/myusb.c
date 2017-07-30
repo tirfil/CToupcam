@@ -485,7 +485,8 @@ main(int argc, char* argv[]){
 		BARRIER0(libusb_bulk_transfer(handle,0x82,buffer+size,maxsize,&transferred,0));
 		size += transferred;
 		printf("transferred=%d total=%d\n",transferred,size);
-	} while(transferred==maxsize);
+	//} while(transferred==maxsize);
+	} while(size!=maxsize);
 	//} while(size != 4147200);
 	//} while(size < 4100000);
 	if (size)
