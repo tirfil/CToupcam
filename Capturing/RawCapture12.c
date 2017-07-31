@@ -196,29 +196,34 @@ int main(int argc, char* argv[])
 	BARRIER(Toupcam_put_ExpoTime(h, expo));
 	BARRIER(Toupcam_put_ExpoAGain(h, gain));
 	BARRIER(Toupcam_get_Size(h,&width, &height));
-	
+		
 	BARRIER(Toupcam_put_eSize(h, 0));
 	BARRIER(Toupcam_put_Speed(h,0));
 	
 	//If you set RealTime mode as TRUE, then you get shorter frame delay but lower frame rate which damages fluency. The default value is FALSE.
 	BARRIER(Toupcam_put_RealTime(h, 1));
 	
-	/*
-	BARRIER(Toupcam_put_Roi(h, 0, 0, 0, 0)); // means to clear the ROI and restore the original size.
-	BARRIER(Toupcam_put_HZ(h,2)); // DC
-	BARRIER(Toupcam_put_Mode(h,1)); // bin(0) or skip(1)
-	BARRIER(Toupcam_put_Option(h,TOUPCAM_OPTION_PROCESSMODE,0)); // 0=better quality
-	BARRIER(Toupcam_put_Option(h,TOUPCAM_OPTION_LINEAR,1)); // turn On
-	BARRIER(Toupcam_put_Option(h,TOUPCAM_OPTION_CURVE,1)); // turn On
-	BARRIER(Toupcam_put_TempTint(h,6503,1000)); // 2000~15000 and 200~2500
+
+	//BARRIER(Toupcam_put_Roi(h, 0, 0, 0, 0)); // means to clear the ROI and restore the original size.
 	
-	BARRIER(Toupcam_put_Hue(h,0)); // -180 - 180
-	BARRIER(Toupcam_put_Saturation(h,128)); // 0 - 255
+	//BARRIER(Toupcam_put_HZ(h,2)); // DC
 	
-	BARRIER(Toupcam_put_Brightness(h,0)); // -64 - 64 
-	BARRIER(Toupcam_put_Contrast(h,0));  // -100 - 100
-	BARRIER(Toupcam_put_Gamma(h,100)); // 20 - 180
-	*/
+
+	//BARRIER(Toupcam_put_Mode(h,1)); // bin(0) or skip(1)
+
+	//BARRIER(Toupcam_put_Option(h,TOUPCAM_OPTION_PROCESSMODE,0)); // 0=better quality
+	
+	//BARRIER(Toupcam_put_Option(h,TOUPCAM_OPTION_LINEAR,1)); // turn On
+	//BARRIER(Toupcam_put_Option(h,TOUPCAM_OPTION_CURVE,1)); // turn On
+	
+	//BARRIER(Toupcam_put_TempTint(h,6503,1000)); // 2000~15000 and 200~2500
+	//BARRIER(Toupcam_put_TempTint(h,10000,2000)); // 2000~15000 and 200~2500
+	
+	//BARRIER(Toupcam_put_Hue(h,0)); // -180 - 180
+	//BARRIER(Toupcam_put_Saturation(h,128)); // 0 - 255
+	//BARRIER(Toupcam_put_Brightness(h,0)); // -64 - 64 
+	//BARRIER(Toupcam_put_Contrast(h,0));  // -100 - 100
+	//BARRIER(Toupcam_put_Gamma(h,100)); // 20 - 180
 
 /*	
 	raw = malloc(sizeof(unsigned char)*width*height*2);

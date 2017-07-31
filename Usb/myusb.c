@@ -342,7 +342,8 @@ main(int argc, char* argv[]){
 	
 	BARRIER(write_register_b(0x315e,0x001a));
 	BARRIER(write_register_b(0x3164,0x001a));
-	BARRIER(write_register_b(0x3048,0x0049)); 
+	//BARRIER(write_register_b(0x3048,0x0049)); 
+	BARRIER(write_register_b(0x3480,0x0049));
 	BARRIER(write_register_b(0x300f,0x0000));
 	BARRIER(write_register_b(0x3010,0x0021));	
 	
