@@ -543,6 +543,16 @@ main(int argc, char* argv[]){
 	free(data);
 	*/
 
+	BARRIER(write_register_b(0x3001,0x0001));
+	BARRIER(write_register_b(0x3020,0x0007));
+	BARRIER(write_register_b(0x3021,0x0000));
+	BARRIER(write_register_b(0x3022,0x0000));
+	BARRIER(write_register_d(0x4000,0x0000)); 
+	BARRIER(write_register_d(0x5000,0x06b7)); 
+	BARRIER(write_register_b(0x3001,0x0000)); 
+	BARRIER(write_register_b(0x3014,0x0019)); 
+
+
 	BARRIER(write_register_d(0x0a00,0x0000));
 	BARRIER(write_register_d(0x0a00,0x0000));
 	BARRIER(write_register_b(0x3003,0x0001)); //IMX290_RESET
