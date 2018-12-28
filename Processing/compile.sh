@@ -7,4 +7,5 @@ gcc center2.c -lm -lcfitsio -o center2
 gcc center3.c -lm -lcfitsio -o center3 
 gcc bayer2rgb.c -lcfitsio -o bayer2rgb
 gcc bayer2rgbbin2x2.c -lcfitsio -o bayer2rgbbin2x2
-
+gcc bayer2awb.c -lcfitsio -o bayer2awb
+gcc bayer2rgbc.c -lcfitsio -lm -o bayer2rgbc
